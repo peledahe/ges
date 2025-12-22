@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\Area;
 use App\Models\WorkOrder;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Layout;
 
 class WorkshopBoard extends Component
 {
@@ -66,6 +67,7 @@ class WorkshopBoard extends Component
         $this->showOrderModal = true;
     }
 
+    #[Layout('layouts.app')]
     public function render()
     {
         return view('livewire.workshop-board');

@@ -9,6 +9,7 @@ use App\Models\ChecklistTemplate;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Layout;
 
 class ReceptionForm extends Component
 {
@@ -21,6 +22,7 @@ class ReceptionForm extends Component
     public $plate;
     public $search_plate;
     public $vehicle_id;
+    public $type; // Vehicle Type
     public $brand, $model, $line, $color, $year, $vin, $engine_number, $chassis_number;
     public $owner_name, $owner_phone, $owner_email, $owner_address;
     public $mileage, $fuel_level;
@@ -65,6 +67,7 @@ class ReceptionForm extends Component
         if ($vehicle) {
             $this->vehicle_id = $vehicle->id;
             $this->plate = $vehicle->plate;
+            $this->type = $vehicle->type;
             $this->brand = $vehicle->brand;
             $this->model = $vehicle->model;
             $this->line = $vehicle->line;
@@ -77,7 +80,7 @@ class ReceptionForm extends Component
             $this->owner_address = $vehicle->owner_address;
         } else {
             // New Vehicle Mode
-            $this->reset(['vehicle_id', 'brand', 'model', 'line', 'color', 'year', 'vin', 'owner_name', 'owner_phone', 'owner_email']);
+            $this->reset(['vehicle_id', 'type', 'brand', 'model', 'line', 'color', 'year', 'vin', 'owner_name', 'owner_phone', 'owner_email']);
             $this->plate = $this->search_plate;
         }
     }
@@ -87,6 +90,7 @@ class ReceptionForm extends Component
         if ($this->currentStep == 1) {
             $this->validate([
                 'plate' => 'required',
+                'type' => 'required',
                 'brand' => 'required',
                 'model' => 'required',
                 'owner_name' => 'required',
@@ -114,6 +118,7 @@ class ReceptionForm extends Component
             $vehicle = Vehicle::updateOrCreate(
                 ['plate' => $this->plate],
                 [
+                    'type' => $this->type,
                     'brand' => $this->brand,
                     'model' => $this->model,
                     'line' => $this->line,
@@ -157,6 +162,20 @@ class ReceptionForm extends Component
         });
     }
 
+    public function getVehicleImageProperty()
+    {
+        $images = [
+            'sedan' => 'sedan.png',
+            'hashback' => 'hashback.png',
+            'suv' => 'camioneta.png',
+            'pickup' => 'pickup.png',
+            'pickup_double' => 'pickup-doble-cabina.png',
+        ];
+
+        return $images[$this->type] ?? null;
+    }
+
+    #[Layout('layouts.app')]
     public function render()
     {
         return view('livewire.reception-form');

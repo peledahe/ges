@@ -39,6 +39,18 @@
                             <h3 class="text-lg font-medium text-gray-900 border-b pb-2 mb-4">Datos del Vehículo</h3>
                             <div class="grid grid-cols-1 gap-4">
                                 <div>
+                                    <label class="block font-medium text-sm text-gray-700">Tipo de Vehículo</label>
+                                    <select wire:model.live="type" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full">
+                                        <option value="">Seleccione</option>
+                                        <option value="sedan">Sedan</option>
+                                        <option value="hashback">Hatchback</option>
+                                        <option value="suv">Camioneta (SUV)</option>
+                                        <option value="pickup">Pickup</option>
+                                        <option value="pickup_double">Pickup Doble Cabina</option>
+                                    </select>
+                                    @error('type') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
                                     <label class="block font-medium text-sm text-gray-700">Placa</label>
                                     <input wire:model="plate" type="text" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full uppercase">
                                     @error('plate') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
@@ -178,9 +190,14 @@
                 @if($currentStep === 3)
                      <!-- Placeholder for Image Mapper -->
                     <div class="space-y-6 text-center py-10">
-                        <svg class="mx-auto h-24 w-24 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        @if($this->vehicleImage)
+                            <img src="{{ asset('img/vehicle-types/' . $this->vehicleImage) }}" class="mx-auto max-h-96 w-auto" alt="Diagrama de Daños">
+                        @else
+                            <svg class="mx-auto h-24 w-24 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <p class="mt-1 text-sm text-gray-500">Seleccione un tipo de vehículo válido para ver el diagrama.</p>
+                        @endif
                         <h3 class="mt-2 text-sm font-medium text-gray-900">Diagrama de Daños</h3>
-                        <p class="mt-1 text-sm text-gray-500">Aquí se mostrará el diagrama del vehículo para marcar daños (Implementación pendiente de gráficos).</p>
+                        <p class="mt-1 text-sm text-gray-500">Marque los daños visualmente en el diagrama superior.</p>
                     </div>
 
                     <div class="border-t pt-6">

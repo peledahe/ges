@@ -18,4 +18,6 @@
     - [x] Implement Reception Module <!-- id: 11 -->
     - [x] Implement Workflow/Area Management <!-- id: 12 -->
     - [x] Implement Notifications & Tracking <!-- id: 13 -->
+- [ ] UI Improvements
+    - [x] Implement Dynamic Vehicle Diagrams <!-- id: 14 -->
 ```
