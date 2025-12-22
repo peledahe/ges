@@ -17,4 +17,5 @@ Route::middleware([
     })->name('dashboard');
 
     Route::get('/reception', \App\Livewire\ReceptionForm::class)->name('reception.create');
+    Route::get('/workflow', \App\Livewire\WorkshopBoard::class)->name('workflow.index');
 });

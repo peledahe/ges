@@ -19,6 +19,10 @@
                     <x-nav-link href="{{ route('reception.create') }}" :active="request()->routeIs('reception.create')">
                         {{ __('Recepción') }}
                     </x-nav-link>
+
+                    <x-nav-link href="{{ route('workflow.index') }}" :active="request()->routeIs('workflow.index')">
+                        {{ __('Taller') }}
+                    </x-nav-link>
                 </div>
             </div>
 

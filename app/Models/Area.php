@@ -10,4 +10,9 @@ class Area extends Model
     use BelongsToTenant;
     
     protected $guarded = [];
+
+    public function workOrders()
+    {
+        return $this->hasMany(WorkOrder::class, 'current_area_id');
+    }
 }
