@@ -12,22 +12,45 @@
     </div>
 
     <!-- Kanban Board Container -->
-    <div class="flex-1 overflow-x-auto overflow-y-hidden bg-gray-100 p-6">
+    <div class="flex-1 overflow-x-auto overflow-y-hidden bg-gray-100 p-6" x-data="{ draggingColumn: null }">
         <div class="flex h-full space-x-4">
             
-            @foreach($areas as $area)
-                <div class="flex-shrink-0 w-80 bg-gray-200 rounded-lg flex flex-col max-h-full"
-                    x-data
+            @foreach($areas as $index => $area)
+                <div class="flex-shrink-0 w-80 bg-gray-200 rounded-lg flex flex-col max-h-full transition-opacity duration-200"
+                    :class="{ 'opacity-50': draggingColumn === {{ $area->id }} }"
+                    draggable="true"
+                    @dragstart="
+                        draggingColumn = {{ $area->id }};
+                        $event.dataTransfer.effectAllowed = 'move';
+                        $event.dataTransfer.setData('type', 'column');
+                        $event.dataTransfer.setData('areaId', {{ $area->id }});
+                        $event.dataTransfer.setData('index', {{ $index }});
+                    "
+                    @dragend="draggingColumn = null"
                     @dragover.prevent
-                    @drop.prevent="
-                        let orderId = $event.dataTransfer.getData('orderId');
-                        $wire.updateOrderArea(orderId, {{ $area->id }});
+                    @drop="
+                        if ($event.dataTransfer.getData('type') === 'column') {
+                            $event.preventDefault();
+                            let fromId = parseInt($event.dataTransfer.getData('areaId'));
+                            let toId = {{ $area->id }};
+                            if (fromId !== toId) {
+                                // Calculate new order on backend
+                                $wire.reorderAreas(fromId, toId);
+                            }
+                        } else {
+                            // Existing card drop logic
+                            let orderId = $event.dataTransfer.getData('orderId');
+                            $wire.updateOrderArea(orderId, {{ $area->id }});
+                        }
                     "
                 >
                     <!-- Column Header -->
-                    <div class="p-3 bg-gray-300 rounded-t-lg font-bold text-gray-700 flex justify-between items-center cursor-move">
+                    <div class="p-3 bg-gray-300 rounded-t-lg font-bold text-gray-700 flex justify-between items-center cursor-grab active:cursor-grabbing">
                         <span>{{ $area->name }}</span>
-                        <span class="bg-gray-400 text-white text-xs px-2 py-1 rounded-full">{{ $area->workOrders->count() }}</span>
+                        <div class="flex items-center">
+                            <span class="bg-gray-400 text-white text-xs px-2 py-1 rounded-full mr-2">{{ $area->workOrders->count() }}</span>
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        </div>
                     </div>
 
                     <!-- Cards Container -->
@@ -35,7 +58,7 @@
                         @foreach($area->workOrders as $order)
                             <div class="bg-white p-4 rounded shadow hover:shadow-md cursor-grab active:cursor-grabbing border-l-4 border-indigo-500"
                                  draggable="true"
-                                 @dragstart="$event.dataTransfer.setData('orderId', {{ $order->id }})"
+                                 @dragstart.stop="$event.dataTransfer.setData('orderId', {{ $order->id }}); $event.dataTransfer.setData('type', 'card');"
                                  wire:click="selectOrder({{ $order->id }})"
                             >
                                 <div class="flex justify-between items-start mb-2">
@@ -58,11 +81,12 @@
                                      <!-- Status Indicator -->
                                      @php
                                         $statusColors = [
-                                            'recepcion' => 'bg-blue-100 text-blue-800',
+                                            'recibido' => 'bg-blue-100 text-blue-800',
                                             'presupuesto' => 'bg-yellow-100 text-yellow-800',
-                                            'autorizado' => 'bg-green-100 text-green-800',
-                                            'en_proceso' => 'bg-indigo-100 text-indigo-800',
-                                            'finalizado' => 'bg-purple-100 text-purple-800',
+                                            'en_espera' => 'bg-orange-100 text-orange-800',
+                                            'trabajando' => 'bg-indigo-100 text-indigo-800',
+                                            'revision' => 'bg-purple-100 text-purple-800',
+                                            'terminado' => 'bg-green-100 text-green-800',
                                         ];
                                         $color = $statusColors[$order->status] ?? 'bg-gray-100 text-gray-800';
                                      @endphp
@@ -81,6 +105,15 @@
                     </div>
                 </div>
             @endforeach
+
+            <!-- Add Area Button -->
+             <div class="flex-shrink-0 w-12 pt-2">
+                <button wire:click="$set('showCreateAreaModal', true)" class="w-10 h-10 rounded-full bg-green-500 hover:bg-green-600 text-white flex items-center justify-center shadow-lg transition-colors" title="Agregar Nueva Área">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                </button>
+            </div>
 
         </div>
     </div>
@@ -103,7 +136,11 @@
                     <div>
                         <h4 class="font-bold text-gray-700 text-sm">Cliente</h4>
                         <p class="text-sm text-gray-600">{{ $selectedOrder->vehicle->owner_name }}</p>
-                        <p class="text-xs text-gray-500">{{ $selectedOrder->vehicle->owner_phone }}</p>
+                        @if(Auth::user()->can_view_contact_info)
+                            <p class="text-xs text-gray-500">{{ $selectedOrder->vehicle->owner_phone }}</p>
+                        @else
+                            <p class="text-xs text-gray-400 italic">Contacto Oculto</p>
+                        @endif
                     </div>
                  </div>
 
@@ -134,6 +171,29 @@
             <x-secondary-button wire:click="$set('showOrderModal', false)" wire:loading.attr="disabled">
                 Cerrar
             </x-secondary-button>
+        </x-slot>
+    </x-dialog-modal>
+
+    <!-- Create Area Modal -->
+    <x-dialog-modal wire:model="showCreateAreaModal">
+        <x-slot name="title">
+            Nueva Área de Taller
+        </x-slot>
+        <x-slot name="content">
+            <div class="col-span-6 sm:col-span-4">
+                <x-label for="newAreaName" value="{{ __('Nombre del Área') }}" />
+                <x-input id="newAreaName" type="text" class="mt-1 block w-full" wire:model="newAreaName" placeholder="Ej: Mecánica Rápida" />
+                <x-input-error for="newAreaName" class="mt-2" />
+            </div>
+        </x-slot>
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('showCreateAreaModal', false)" wire:loading.attr="disabled">
+                Cancelar
+            </x-secondary-button>
+
+            <x-button class="ml-2" wire:click="createArea" wire:loading.attr="disabled">
+                Crear Área
+            </x-button>
         </x-slot>
     </x-dialog-modal>
 </div>

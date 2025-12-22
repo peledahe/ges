@@ -29,6 +29,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'tenant_id',
+        'role',
+        'area_id',
+        'can_view_contact_info',
     ];
 
     /**
@@ -62,6 +66,27 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'can_view_contact_info' => 'boolean',
         ];
+    }
+
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    public function area()
+    {
+        return $this->belongsTo(Area::class);
+    }
+
+    public function hasRole($role)
+    {
+        return $this->role === $role;
+    }
+
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
     }
 }

@@ -24,6 +24,7 @@ class ReceptionForm extends Component
     public $vehicle_id;
     public $type; // Vehicle Type
     public $brand, $model, $line, $color, $year, $vin, $engine_number, $chassis_number;
+    public $doors_qty;
     public $owner_name, $owner_phone, $owner_email, $owner_address;
     public $mileage, $fuel_level;
 
@@ -72,6 +73,7 @@ class ReceptionForm extends Component
             $this->brand = $vehicle->brand;
             $this->model = $vehicle->model;
             $this->line = $vehicle->line;
+            $this->doors_qty = $vehicle->doors_qty;
             $this->color = $vehicle->color;
             $this->year = $vehicle->year;
             $this->vin = $vehicle->vin;
@@ -81,7 +83,7 @@ class ReceptionForm extends Component
             $this->owner_address = $vehicle->owner_address;
         } else {
             // New Vehicle Mode
-            $this->reset(['vehicle_id', 'type', 'brand', 'model', 'line', 'color', 'year', 'vin', 'owner_name', 'owner_phone', 'owner_email']);
+            $this->reset(['vehicle_id', 'type', 'brand', 'model', 'line', 'color', 'year', 'vin', 'owner_name', 'owner_phone', 'owner_email', 'doors_qty']);
             $this->plate = $this->search_plate;
         }
     }
@@ -94,6 +96,7 @@ class ReceptionForm extends Component
                 'type' => 'required',
                 'brand' => 'required',
                 'model' => 'required',
+                'doors_qty' => 'required|integer|min:2|max:5',
                 'owner_name' => 'required',
                 'mileage' => 'required|numeric',
                 'fuel_level' => 'required',
@@ -123,6 +126,7 @@ class ReceptionForm extends Component
                     'brand' => $this->brand,
                     'model' => $this->model,
                     'line' => $this->line,
+                    'doors_qty' => $this->doors_qty,
                     'color' => $this->color,
                     'year' => $this->year,
                     'vin' => $this->vin,
@@ -134,12 +138,18 @@ class ReceptionForm extends Component
             );
 
             // 2. Create Work Order
+            // Find "Recepción" area or default to first area
+            $receptionArea = \App\Models\Area::where('name', 'like', 'Recepci%')->first();
+            $areaId = $receptionArea ? $receptionArea->id : \App\Models\Area::first()->id;
+
             $order = WorkOrder::create([
                 'vehicle_id' => $vehicle->id,
-                'status' => 'recepcion',
+                'status' => 'recibido',
+                'current_area_id' => $areaId,
                 'received_at' => now(),
                 'mileage' => $this->mileage,
                 'fuel_level' => $this->fuel_level,
+                'notes' => $this->notes,
                 // 'payment_type' => ... (can add this field later to form)
             ]);
 
@@ -183,6 +193,15 @@ class ReceptionForm extends Component
             }
             
             // 5. Notify/Log
+            try {
+                if ($vehicle->owner_email) {
+                    $vehicle->notify(new \App\Notifications\OrderReceived($order));
+                }
+            } catch (\Exception $e) {
+                // Log error but continue
+                \Illuminate\Support\Facades\Log::error('Error sending email: ' . $e->getMessage());
+            }
+
             session()->flash('message', 'Orden de recepción creada exitosamente: #'. $order->id);
             return redirect()->route('dashboard');
         });

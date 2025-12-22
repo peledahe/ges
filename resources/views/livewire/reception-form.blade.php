@@ -75,6 +75,11 @@
                                         <input wire:model="color" type="text" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full">
                                     </div>
                                     <div>
+                                        <label class="block font-medium text-sm text-gray-700">Puertas</label>
+                                        <input wire:model="doors_qty" type="number" min="2" max="5" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full">
+                                        @error('doors_qty') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    </div>
+                                    <div>
                                         <label class="block font-medium text-sm text-gray-700">Año</label>
                                         <input wire:model="year" type="number" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full">
                                     </div>
@@ -190,12 +195,17 @@
                 @if($currentStep === 3)
                      <!-- Placeholder for Image Mapper -->
                     <div class="space-y-6 text-center py-5" 
+                         wire:ignore
+                         wire:key="canvas-{{ $this->vehicleImage }}"
                          x-data="{
                             isDrawing: false,
                             ctx: null,
                             canvas: null,
                             image: null,
                             imageSrc: '{{ $this->vehicleImage ? asset('img/vehicle-types/' . $this->vehicleImage) : '' }}',
+                            showToast: false,
+                            toastMessage: '',
+                            toastType: 'success', // success, error
                             
                             init() {
                                 if (!this.imageSrc) return;
@@ -205,7 +215,10 @@
                                 
                                 // Load Image
                                 this.image = new Image();
+                                // Avoid caching issues
                                 this.image.src = this.imageSrc;
+                                this.image.crossOrigin = 'Anonymous';
+                                
                                 this.image.onload = () => {
                                     // Resize canvas to match image aspect ratio but limit width
                                     const maxWidth = Math.min(600, window.innerWidth - 40);
@@ -216,12 +229,12 @@
                                     
                                     // Draw background image
                                     this.ctx.drawImage(this.image, 0, 0, this.canvas.width, this.canvas.height);
+                                    
+                                    // Set drawing style explicitly after image load
+                                    this.ctx.lineWidth = 4;
+                                    this.ctx.lineCap = 'round';
+                                    this.ctx.strokeStyle = '#FF0000'; // Red
                                 };
-
-                                // Set drawing style
-                                this.ctx.lineWidth = 3;
-                                this.ctx.lineCap = 'round';
-                                this.ctx.strokeStyle = 'red';
                             },
                             
                             startDrawing(e) {
@@ -233,19 +246,28 @@
                                 if (this.isDrawing) {
                                     this.isDrawing = false;
                                     this.ctx.beginPath();
-                                    // Sync to Livewire
-                                    $wire.set('damageMap', this.canvas.toDataURL());
+                                    // Do NOT sync automatically to avoid re-renders
                                 }
                             },
                             
                             draw(e) {
                                 if (!this.isDrawing) return;
-                                e.preventDefault();
+                                e.preventDefault(); // Prevent scrolling on touch
                                 
                                 // Get coordinates
                                 const rect = this.canvas.getBoundingClientRect();
-                                const x = (e.clientX || e.touches[0].clientX) - rect.left;
-                                const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                                let clientX, clientY;
+                                
+                                if (e.touches) {
+                                  clientX = e.touches[0].clientX;
+                                  clientY = e.touches[0].clientY;
+                                } else {
+                                  clientX = e.clientX;
+                                  clientY = e.clientY;
+                                }
+
+                                const x = clientX - rect.left;
+                                const y = clientY - rect.top;
                                 
                                 this.ctx.lineTo(x, y);
                                 this.ctx.stroke();
@@ -256,10 +278,64 @@
                             clearCanvas() {
                                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                                 this.ctx.drawImage(this.image, 0, 0, this.canvas.width, this.canvas.height);
-                                $wire.set('damageMap', null);
+                                this.showNotification('Marcas borradas', 'info');
+                            },
+                            
+                            saveCanvas() {
+                                $wire.set('damageMap', this.canvas.toDataURL())
+                                    .then(() => {
+                                        this.showNotification('Diagrama guardado correctamente', 'success');
+                                    })
+                                    .catch(() => {
+                                        this.showNotification('Error al guardar el diagrama', 'error');
+                                    });
+                            },
+
+                            showNotification(message, type = 'success') {
+                                this.toastMessage = message;
+                                this.toastType = type;
+                                this.showToast = true;
+                                setTimeout(() => {
+                                    this.showToast = false;
+                                }, 3000);
                             }
                          }"
+                         x-on:step-saved.window="saveCanvas()"
                     >
+                        <!-- Toast Notification -->
+                        <div x-show="showToast" 
+                             x-transition:enter="transition ease-out duration-300"
+                             x-transition:enter-start="opacity-0 transform translate-x-full"
+                             x-transition:enter-end="opacity-100 transform translate-x-0"
+                             x-transition:leave="transition ease-in duration-200"
+                             x-transition:leave-start="opacity-100 transform translate-x-0"
+                             x-transition:leave-end="opacity-0 transform translate-x-full"
+                             class="fixed top-4 right-4 z-50 flex items-center w-full max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800"
+                             style="display: none;"
+                             role="alert">
+                            <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg"
+                                 :class="{
+                                    'text-green-500 bg-green-100 dark:bg-green-800 dark:text-green-200': toastType === 'success',
+                                    'text-red-500 bg-red-100 dark:bg-red-800 dark:text-red-200': toastType === 'error',
+                                    'text-blue-500 bg-blue-100 dark:bg-blue-800 dark:text-blue-200': toastType === 'info'
+                                 }">
+                                <template x-if="toastType === 'success'">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                                </template>
+                                <template x-if="toastType === 'error'">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                                </template>
+                                <template x-if="toastType === 'info'">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+                                </template>
+                            </div>
+                            <div class="ml-3 text-sm font-normal" x-text="toastMessage"></div>
+                            <button type="button" @click="showToast = false" class="ml-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700">
+                                <span class="sr-only">Close</span>
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                            </button>
+                        </div>
+                        
                         @if($this->vehicleImage)
                             <div class="relative inline-block border border-gray-300 shadow-sm rounded">
                                 <canvas x-ref="canvas"
@@ -277,13 +353,22 @@
                                 <button type="button" @click="clearCanvas" class="text-xs bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200">
                                     Borrar Marcas
                                 </button>
+                                <!-- Explicit Save Button for Safety -->
+                                <button type="button" @click="saveCanvas" class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded hover:bg-green-200">
+                                    Guardar Cambios
+                                </button>
                             </div>
                         @else
                             <svg class="mx-auto h-24 w-24 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             <p class="mt-1 text-sm text-gray-500">Seleccione un tipo de vehículo válido para ver el diagrama.</p>
                         @endif
                         <h3 class="mt-2 text-sm font-medium text-gray-900">Diagrama de Daños</h3>
-                        <p class="mt-1 text-sm text-gray-500">Dibuje las marcas de daños directamente sobre la imagen.</p>
+                        <p class="mt-1 text-sm text-gray-500">Dibuje las marcas de daños directamente sobre la imagen. <strong>¡No olvide guardar!</strong></p>
+                    </div>
+
+                    <div class="mt-6 border-t pt-6">
+                        <label class="block font-medium text-sm text-gray-700 mb-2">Solicitud de Reparación / Fallas Reportadas</label>
+                        <textarea wire:model="notes" rows="4" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full" placeholder="Describa los problemas reportados por el cliente o los servicios a realizar..."></textarea>
                     </div>
 
                     <div class="border-t pt-6">
@@ -347,12 +432,24 @@
                     @endif
 
                     @if($currentStep < $totalSteps)
-                        <button type="button" wire:click="nextStep" class="bg-indigo-600 text-white px-4 py-2 rounded shadow-sm hover:bg-indigo-700">
+                        <button type="button" 
+                                wire:click="nextStep" 
+                                @click="$dispatch('step-saved')"
+                                class="bg-indigo-600 text-white px-4 py-2 rounded shadow-sm hover:bg-indigo-700">
                             Siguiente
                         </button>
                     @else
-                        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded shadow-sm hover:bg-indigo-700 font-bold">
-                            Crear Orden de Recepción
+                        <button type="submit" 
+                                wire:loading.attr="disabled"
+                                wire:target="submit"
+                                @click="$dispatch('step-saved')"
+                                class="bg-indigo-600 text-white px-4 py-2 rounded shadow-sm hover:bg-indigo-700 font-bold flex items-center">
+                            <svg wire:loading wire:target="submit" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span wire:loading.remove wire:target="submit">Crear Orden de Recepción</span>
+                            <span wire:loading wire:target="submit">Procesando...</span>
                         </button>
                     @endif
                 </div>

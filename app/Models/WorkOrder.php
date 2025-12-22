@@ -30,4 +30,8 @@ class WorkOrder extends Model
     {
         return $this->hasMany(WorkOrderChecklist::class);
     }
+    public function photos()
+    {
+        return $this->hasMany(WorkOrderPhoto::class);
+    }
 }
