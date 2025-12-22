@@ -25,4 +25,9 @@ class WorkOrder extends Model
     {
         return $this->belongsTo(Area::class, 'current_area_id');
     }
+
+    public function checklists()
+    {
+        return $this->hasMany(WorkOrderChecklist::class);
+    }
 }
