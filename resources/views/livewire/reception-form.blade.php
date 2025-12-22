@@ -189,15 +189,101 @@
                 <!-- STEP 3: DAMAGES & PHOTOS -->
                 @if($currentStep === 3)
                      <!-- Placeholder for Image Mapper -->
-                    <div class="space-y-6 text-center py-10">
+                    <div class="space-y-6 text-center py-5" 
+                         x-data="{
+                            isDrawing: false,
+                            ctx: null,
+                            canvas: null,
+                            image: null,
+                            imageSrc: '{{ $this->vehicleImage ? asset('img/vehicle-types/' . $this->vehicleImage) : '' }}',
+                            
+                            init() {
+                                if (!this.imageSrc) return;
+                                
+                                this.canvas = this.$refs.canvas;
+                                this.ctx = this.canvas.getContext('2d');
+                                
+                                // Load Image
+                                this.image = new Image();
+                                this.image.src = this.imageSrc;
+                                this.image.onload = () => {
+                                    // Resize canvas to match image aspect ratio but limit width
+                                    const maxWidth = Math.min(600, window.innerWidth - 40);
+                                    const scale = maxWidth / this.image.width;
+                                    
+                                    this.canvas.width = maxWidth;
+                                    this.canvas.height = this.image.height * scale;
+                                    
+                                    // Draw background image
+                                    this.ctx.drawImage(this.image, 0, 0, this.canvas.width, this.canvas.height);
+                                };
+
+                                // Set drawing style
+                                this.ctx.lineWidth = 3;
+                                this.ctx.lineCap = 'round';
+                                this.ctx.strokeStyle = 'red';
+                            },
+                            
+                            startDrawing(e) {
+                                this.isDrawing = true;
+                                this.draw(e);
+                            },
+                            
+                            stopDrawing() {
+                                if (this.isDrawing) {
+                                    this.isDrawing = false;
+                                    this.ctx.beginPath();
+                                    // Sync to Livewire
+                                    $wire.set('damageMap', this.canvas.toDataURL());
+                                }
+                            },
+                            
+                            draw(e) {
+                                if (!this.isDrawing) return;
+                                e.preventDefault();
+                                
+                                // Get coordinates
+                                const rect = this.canvas.getBoundingClientRect();
+                                const x = (e.clientX || e.touches[0].clientX) - rect.left;
+                                const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                                
+                                this.ctx.lineTo(x, y);
+                                this.ctx.stroke();
+                                this.ctx.beginPath();
+                                this.ctx.moveTo(x, y);
+                            },
+                            
+                            clearCanvas() {
+                                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                                this.ctx.drawImage(this.image, 0, 0, this.canvas.width, this.canvas.height);
+                                $wire.set('damageMap', null);
+                            }
+                         }"
+                    >
                         @if($this->vehicleImage)
-                            <img src="{{ asset('img/vehicle-types/' . $this->vehicleImage) }}" class="mx-auto max-h-96 w-auto" alt="Diagrama de Daños">
+                            <div class="relative inline-block border border-gray-300 shadow-sm rounded">
+                                <canvas x-ref="canvas"
+                                        @mousedown="startDrawing"
+                                        @mousemove="draw"
+                                        @mouseup="stopDrawing"
+                                        @mouseleave="stopDrawing"
+                                        @touchstart.passive="startDrawing"
+                                        @touchmove.passive="draw"
+                                        @touchend="stopDrawing"
+                                        class="cursor-crosshair bg-white touch-none"
+                                ></canvas>
+                            </div>
+                            <div class="mt-2 flex justify-center space-x-2">
+                                <button type="button" @click="clearCanvas" class="text-xs bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200">
+                                    Borrar Marcas
+                                </button>
+                            </div>
                         @else
                             <svg class="mx-auto h-24 w-24 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             <p class="mt-1 text-sm text-gray-500">Seleccione un tipo de vehículo válido para ver el diagrama.</p>
                         @endif
                         <h3 class="mt-2 text-sm font-medium text-gray-900">Diagrama de Daños</h3>
-                        <p class="mt-1 text-sm text-gray-500">Marque los daños visualmente en el diagrama superior.</p>
+                        <p class="mt-1 text-sm text-gray-500">Dibuje las marcas de daños directamente sobre la imagen.</p>
                     </div>
 
                     <div class="border-t pt-6">

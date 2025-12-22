@@ -33,6 +33,7 @@ class ReceptionForm extends Component
 
     // Step 3: Photos & Damages
     public $photos = [];
+    public $damageMap; // Base64 image from canvas
     public $damages = []; // Stores marked damages on the diagram
 
     // Step 4: Review & Confirm
@@ -153,8 +154,33 @@ class ReceptionForm extends Component
                 }
             }
 
-            // 4. Save Photos (Placeholder for now)
-            // foreach ($this->photos as $photo) { ... }
+            // 4. Save Photos
+            // Save uploaded photos
+            if ($this->photos) {
+                foreach ($this->photos as $photo) {
+                    $path = $photo->store('work-orders/' . $order->id, 'public');
+                    $order->photos()->create([
+                        'path' => $path,
+                        'category' => 'general',
+                    ]);
+                }
+            }
+
+            // Save Damage Map
+            if ($this->damageMap) {
+                // Decode base64
+                $image = str_replace('data:image/png;base64,', '', $this->damageMap);
+                $image = str_replace(' ', '+', $image);
+                $imageName = 'damage_map_' . time() . '.png';
+                $path = 'work-orders/' . $order->id . '/' . $imageName;
+                
+                \Illuminate\Support\Facades\Storage::disk('public')->put($path, base64_decode($image));
+
+                $order->photos()->create([
+                    'path' => $path,
+                    'category' => 'damage_map',
+                ]);
+            }
             
             // 5. Notify/Log
             session()->flash('message', 'Orden de recepción creada exitosamente: #'. $order->id);

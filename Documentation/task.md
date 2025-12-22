@@ -20,4 +20,5 @@
     - [x] Implement Notifications & Tracking <!-- id: 13 -->
 - [ ] UI Improvements
     - [x] Implement Dynamic Vehicle Diagrams <!-- id: 14 -->
+    - [x] Implement Interactive Damage Canvas <!-- id: 15 -->
 ```
