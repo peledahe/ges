@@ -47,7 +47,16 @@ class WorkshopBoard extends Component
             // Re-fetch to update UI
             $this->refreshBoard();
             
-            $this->dispatch('notify', 'Orden actualizada correctamente');
+            // Send Notification (Optional, maybe checkbox later, for now auto-send if not same area)
+            try {
+                if ($order->vehicle->owner_email) {
+                    $order->vehicle->notify(new \App\Notifications\WorkOrderUpdated($order));
+                }
+            } catch (\Exception $e) {
+                // Log error but don't break UI
+            }
+
+            $this->dispatch('notify', 'Orden actualizada y notificación enviada');
         }
     }
 

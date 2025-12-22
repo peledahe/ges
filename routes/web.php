@@ -6,6 +6,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/rastreo', \App\Livewire\PublicTracking::class)->name('tracking');
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),

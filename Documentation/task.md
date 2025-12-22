@@ -17,5 +17,5 @@
     - [x] Implement Workshop/Company Management <!-- id: 10 -->
     - [x] Implement Reception Module <!-- id: 11 -->
     - [x] Implement Workflow/Area Management <!-- id: 12 -->
-    - [/] Implement Notifications & Tracking <!-- id: 13 -->
+    - [x] Implement Notifications & Tracking <!-- id: 13 -->
 ```
