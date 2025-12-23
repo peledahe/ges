@@ -1,6 +1,6 @@
 <div class="h-screen flex flex-col">
-    <div class="px-4 py-4 bg-white border-b border-gray-200 flex justify-between items-center">
-        <h1 class="text-xl font-bold text-gray-800">Tablero de Taller</h1>
+    <div class="px-4 py-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+        <h1 class="text-xl font-bold text-gray-800 dark:text-white">Tablero de Taller</h1>
         <div class="flex space-x-2">
              <a href="<?php echo e(route('reception.create')); ?>" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2 px-4 rounded-md flex items-center">
                 <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -12,11 +12,11 @@
     </div>
 
     <!-- Kanban Board Container -->
-    <div class="flex-1 overflow-x-auto overflow-y-hidden bg-gray-100 p-6" x-data="{ draggingColumn: null }">
+    <div class="flex-1 overflow-x-auto overflow-y-hidden bg-gray-100 dark:bg-gray-900 p-6" x-data="{ draggingColumn: null }">
         <div class="flex h-full space-x-4">
             
             <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $areas; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $area): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                <div class="flex-shrink-0 w-80 bg-gray-200 rounded-lg flex flex-col max-h-full transition-opacity duration-200"
+                <div class="flex-shrink-0 w-80 bg-gray-200 dark:bg-gray-800 rounded-lg flex flex-col max-h-full transition-opacity duration-200"
                     :class="{ 'opacity-50': draggingColumn === <?php echo e($area->id); ?> }"
                     draggable="true"
                     @dragstart="
@@ -45,7 +45,7 @@
                     "
                 >
                     <!-- Column Header -->
-                    <div class="p-3 bg-gray-300 rounded-t-lg font-bold text-gray-700 flex justify-between items-center cursor-grab active:cursor-grabbing">
+                    <div class="p-3 bg-gray-300 dark:bg-gray-700 rounded-t-lg font-bold text-gray-700 dark:text-gray-200 flex justify-between items-center cursor-grab active:cursor-grabbing">
                         <span><?php echo e($area->name); ?></span>
                         <div class="flex items-center">
                             <span class="bg-gray-400 text-white text-xs px-2 py-1 rounded-full mr-2"><?php echo e($area->workOrders->count()); ?></span>
@@ -56,27 +56,27 @@
                     <!-- Cards Container -->
                     <div class="flex-1 overflow-y-auto p-3 space-y-3">
                         <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $area->workOrders; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $order): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <div class="bg-white p-4 rounded shadow hover:shadow-md cursor-grab active:cursor-grabbing border-l-4 border-indigo-500"
+                            <div class="bg-white dark:bg-gray-700 p-4 rounded shadow hover:shadow-md cursor-grab active:cursor-grabbing border-l-4 border-indigo-500"
                                  draggable="true"
                                  @dragstart.stop="$event.dataTransfer.setData('orderId', <?php echo e($order->id); ?>); $event.dataTransfer.setData('type', 'card');"
                                  wire:click="selectOrder(<?php echo e($order->id); ?>)"
                             >
                                 <div class="flex justify-between items-start mb-2">
-                                    <span class="text-indigo-700 font-bold text-sm"><?php echo e($order->vehicle->plate); ?></span>
-                                    <span class="text-gray-400 text-xs text-right"><?php echo e($order->created_at->diffForHumans()); ?></span>
+                                    <span class="text-indigo-700 dark:text-indigo-300 font-bold text-sm"><?php echo e($order->vehicle->plate); ?></span>
+                                    <span class="text-gray-400 dark:text-gray-500 text-xs text-right"><?php echo e($order->created_at->diffForHumans()); ?></span>
                                 </div>
                                 
-                                <div class="text-sm font-medium text-gray-800 mb-1">
+                                <div class="text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">
                                     <?php echo e($order->vehicle->brand); ?> <?php echo e($order->vehicle->model); ?>
 
                                 </div>
-                                <div class="text-xs text-gray-500 mb-2">
+                                <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">
                                     <?php echo e($order->vehicle->color); ?> - <?php echo e($order->vehicle->owner_name); ?>
 
                                 </div>
 
-                                <div class="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
-                                     <span class="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">
+                                <div class="flex justify-between items-center mt-3 pt-2 border-t border-gray-100 dark:border-gray-600">
+                                     <span class="text-xs px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300">
                                         #<?php echo e($order->id); ?>
 
                                     </span>
@@ -84,14 +84,14 @@
                                      <!-- Status Indicator -->
                                      <?php
                                         $statusColors = [
-                                            'recibido' => 'bg-blue-100 text-blue-800',
-                                            'presupuesto' => 'bg-yellow-100 text-yellow-800',
-                                            'en_espera' => 'bg-orange-100 text-orange-800',
-                                            'trabajando' => 'bg-indigo-100 text-indigo-800',
-                                            'revision' => 'bg-purple-100 text-purple-800',
-                                            'terminado' => 'bg-green-100 text-green-800',
+                                            'recibido' => 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+                                            'presupuesto' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+                                            'en_espera' => 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
+                                            'trabajando' => 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300',
+                                            'revision' => 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
+                                            'terminado' => 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
                                         ];
-                                        $color = $statusColors[$order->status] ?? 'bg-gray-100 text-gray-800';
+                                        $color = $statusColors[$order->status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
                                      ?>
                                      <span class="text-xs px-2 py-0.5 rounded <?php echo e($color); ?>">
                                         <?php echo e(ucfirst(str_replace('_', ' ', $order->status))); ?>

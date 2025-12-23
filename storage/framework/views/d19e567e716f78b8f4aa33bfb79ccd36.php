@@ -66,7 +66,7 @@
 if (session()->has($__sessionArgs[0])) :
 if (isset($value)) { $__sessionPrevious[] = $value; }
 $value = session()->get($__sessionArgs[0]); ?>
-            <div class="mb-4 font-medium text-sm text-green-600">
+            <div class="mb-4 font-medium text-sm text-green-600 dark:text-green-400">
                 <?php echo e($value); ?>
 
             </div>
@@ -187,13 +187,13 @@ unset($__sessionArgs); ?>
 <?php $component = $__componentOriginal74b62b190a03153f11871f645315f4de; ?>
 <?php unset($__componentOriginal74b62b190a03153f11871f645315f4de); ?>
 <?php endif; ?>
-                    <span class="ms-2 text-sm text-gray-600"><?php echo e(__('Remember me')); ?></span>
+                    <span class="ms-2 text-sm text-gray-600 dark:text-gray-400"><?php echo e(__('Remember me')); ?></span>
                 </label>
             </div>
 
             <div class="flex items-center justify-end mt-4">
                 <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(Route::has('password.request')): ?>
-                    <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="<?php echo e(route('password.request')); ?>">
+                    <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="<?php echo e(route('password.request')); ?>">
                         <?php echo e(__('Forgot your password?')); ?>
 
                     </a>

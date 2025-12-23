@@ -42,27 +42,11 @@ class WorkshopBoard extends Component
         $this->areas = $query->get();
     }
 
-    public function reorderAreas($fromId, $toId)
+    public function updateAreaOrders($orderedIds)
     {
-        $areas = Area::orderBy('order')->get();
-        $fromArea = $areas->firstWhere('id', $fromId);
-        $toArea = $areas->firstWhere('id', $toId);
-        
-        if (!$fromArea || !$toArea) return;
-
-        $newOrder = $areas->pluck('id')->toArray();
-        $fromIndex = array_search($fromId, $newOrder);
-        $toIndex = array_search($toId, $newOrder);
-
-        // Move
-        array_splice($newOrder, $fromIndex, 1);
-        array_splice($newOrder, $toIndex, 0, $fromId);
-
-        // Update all
-        foreach ($newOrder as $index => $id) {
+        foreach ($orderedIds as $index => $id) {
              Area::where('id', $id)->update(['order' => $index]);
         }
-        
         $this->refreshBoard();
     }
 

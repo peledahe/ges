@@ -1,6 +1,7 @@
-<div class="h-screen flex flex-col">
-    <div class="px-4 py-4 bg-white border-b border-gray-200 flex justify-between items-center">
-        <h1 class="text-xl font-bold text-gray-800">Tablero de Taller</h1>
+<div class="h-screen flex flex-col" x-data>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+    <div class="px-4 py-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+        <h1 class="text-xl font-bold text-gray-800 dark:text-white">Tablero de Taller</h1>
         <div class="flex space-x-2">
              <a href="{{ route('reception.create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2 px-4 rounded-md flex items-center">
                 <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -12,40 +13,56 @@
     </div>
 
     <!-- Kanban Board Container -->
-    <div class="flex-1 overflow-x-auto overflow-y-hidden bg-gray-100 p-6" x-data="{ draggingColumn: null }">
-        <div class="flex h-full space-x-4">
+    <div 
+        class="flex-1 overflow-x-auto overflow-y-hidden bg-gray-100 dark:bg-gray-900 p-6" 
+        x-data="{ 
+            initBoard() {
+                // Initialize Horizontal Sortable for Columns (Areas)
+                new Sortable(this.$refs.board, {
+                    animation: 150,
+                    handle: '.column-header', // Drag via header only
+                    ghostClass: 'opacity-50',
+                    onEnd: (evt) => {
+                        let orderedIds = Array.from(evt.to.children).map(el => el.dataset.areaId);
+                        $wire.updateAreaOrders(orderedIds);
+                    }
+                });
+            },
+            initColumn(el, areaId) {
+                // Initialize Vertical Sortable for Cards (Orders)
+                new Sortable(el, {
+                    group: 'shared', // Allow dragging between columns
+                    animation: 150,
+                    ghostClass: 'bg-indigo-50',
+                    onEnd: (evt) => {
+                        // Logic for moving/sorting
+                        // If moved to another list, the 'onAdd' of the target list fires? 
+                        // Actually 'onEnd' fires for the source list. 
+                        // But verifying: we just want to update the relationship if moved to another column.
+                        
+                        let itemEl = evt.item;
+                        let newAreaId = evt.to.dataset.areaId;
+                        let oldAreaId = evt.from.dataset.areaId;
+                        let orderId = itemEl.dataset.orderId;
+
+                        if (newAreaId !== oldAreaId) {
+                            $wire.updateOrderArea(orderId, newAreaId);
+                        }
+                    }
+                });
+            }
+        }"
+        x-init="initBoard()"
+    >
+        <div class="flex h-full space-x-4" x-ref="board">
             
             @foreach($areas as $index => $area)
-                <div class="flex-shrink-0 w-80 bg-gray-200 rounded-lg flex flex-col max-h-full transition-opacity duration-200"
-                    :class="{ 'opacity-50': draggingColumn === {{ $area->id }} }"
-                    draggable="true"
-                    @dragstart="
-                        draggingColumn = {{ $area->id }};
-                        $event.dataTransfer.effectAllowed = 'move';
-                        $event.dataTransfer.setData('type', 'column');
-                        $event.dataTransfer.setData('areaId', {{ $area->id }});
-                        $event.dataTransfer.setData('index', {{ $index }});
-                    "
-                    @dragend="draggingColumn = null"
-                    @dragover.prevent
-                    @drop="
-                        if ($event.dataTransfer.getData('type') === 'column') {
-                            $event.preventDefault();
-                            let fromId = parseInt($event.dataTransfer.getData('areaId'));
-                            let toId = {{ $area->id }};
-                            if (fromId !== toId) {
-                                // Calculate new order on backend
-                                $wire.reorderAreas(fromId, toId);
-                            }
-                        } else {
-                            // Existing card drop logic
-                            let orderId = $event.dataTransfer.getData('orderId');
-                            $wire.updateOrderArea(orderId, {{ $area->id }});
-                        }
-                    "
+                <div 
+                    class="flex-shrink-0 w-80 bg-gray-200 dark:bg-gray-800 rounded-lg flex flex-col max-h-full transition-opacity duration-200"
+                    data-area-id="{{ $area->id }}"
                 >
                     <!-- Column Header -->
-                    <div class="p-3 bg-gray-300 rounded-t-lg font-bold text-gray-700 flex justify-between items-center cursor-grab active:cursor-grabbing">
+                    <div class="column-header p-3 bg-gray-300 dark:bg-gray-700 rounded-t-lg font-bold text-gray-700 dark:text-gray-200 flex justify-between items-center cursor-grab active:cursor-grabbing">
                         <span>{{ $area->name }}</span>
                         <div class="flex items-center">
                             <span class="bg-gray-400 text-white text-xs px-2 py-1 rounded-full mr-2">{{ $area->workOrders->count() }}</span>
@@ -54,41 +71,44 @@
                     </div>
 
                     <!-- Cards Container -->
-                    <div class="flex-1 overflow-y-auto p-3 space-y-3">
+                    <div 
+                        class="flex-1 overflow-y-auto p-3 space-y-3"
+                        data-area-id="{{ $area->id }}"
+                        x-init="initColumn($el, {{ $area->id }})"
+                    >
                         @foreach($area->workOrders as $order)
-                            <div class="bg-white p-4 rounded shadow hover:shadow-md cursor-grab active:cursor-grabbing border-l-4 border-indigo-500"
-                                 draggable="true"
-                                 @dragstart.stop="$event.dataTransfer.setData('orderId', {{ $order->id }}); $event.dataTransfer.setData('type', 'card');"
+                            <div class="bg-white dark:bg-gray-700 p-4 rounded shadow hover:shadow-md cursor-grab active:cursor-grabbing border-l-4 border-indigo-500"
+                                 data-order-id="{{ $order->id }}"
                                  wire:click="selectOrder({{ $order->id }})"
                             >
                                 <div class="flex justify-between items-start mb-2">
-                                    <span class="text-indigo-700 font-bold text-sm">{{ $order->vehicle->plate }}</span>
-                                    <span class="text-gray-400 text-xs text-right">{{ $order->created_at->diffForHumans() }}</span>
+                                    <span class="text-indigo-700 dark:text-indigo-300 font-bold text-sm">{{ $order->vehicle->plate }}</span>
+                                    <span class="text-gray-400 dark:text-gray-500 text-xs text-right">{{ $order->created_at->diffForHumans() }}</span>
                                 </div>
                                 
-                                <div class="text-sm font-medium text-gray-800 mb-1">
+                                <div class="text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">
                                     {{ $order->vehicle->brand }} {{ $order->vehicle->model }}
                                 </div>
-                                <div class="text-xs text-gray-500 mb-2">
+                                <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">
                                     {{ $order->vehicle->color }} - {{ $order->vehicle->owner_name }}
                                 </div>
 
-                                <div class="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
-                                     <span class="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">
+                                <div class="flex justify-between items-center mt-3 pt-2 border-t border-gray-100 dark:border-gray-600">
+                                     <span class="text-xs px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300">
                                         #{{ $order->id }}
                                     </span>
                                     
                                      <!-- Status Indicator -->
                                      @php
                                         $statusColors = [
-                                            'recibido' => 'bg-blue-100 text-blue-800',
-                                            'presupuesto' => 'bg-yellow-100 text-yellow-800',
-                                            'en_espera' => 'bg-orange-100 text-orange-800',
-                                            'trabajando' => 'bg-indigo-100 text-indigo-800',
-                                            'revision' => 'bg-purple-100 text-purple-800',
-                                            'terminado' => 'bg-green-100 text-green-800',
+                                            'recibido' => 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+                                            'presupuesto' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+                                            'en_espera' => 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
+                                            'trabajando' => 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300',
+                                            'revision' => 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
+                                            'terminado' => 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
                                         ];
-                                        $color = $statusColors[$order->status] ?? 'bg-gray-100 text-gray-800';
+                                        $color = $statusColors[$order->status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
                                      @endphp
                                      <span class="text-xs px-2 py-0.5 rounded {{ $color }}">
                                         {{ ucfirst(str_replace('_', ' ', $order->status)) }}
