@@ -17,7 +17,18 @@
         <!-- Styles -->
         <?php echo \Livewire\Mechanisms\FrontendAssets\FrontendAssets::styles(); ?>
 
+        <!-- PWA -->
+        <link rel="manifest" href="<?php echo e(asset('manifest.json')); ?>">
+        <meta name="theme-color" content="#4f46e5">
+        <link rel="apple-touch-icon" href="<?php echo e(asset('img/icons/icon.svg')); ?>">
 
+        <script>
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(() => console.log('Service Worker Registrado'))
+                    .catch((err) => console.log('Service Worker Falló', err));
+            }
+        </script>
         <script>
             if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 document.documentElement.classList.add('dark')
@@ -91,6 +102,27 @@ if (isset($__slots)) unset($__slots);
 
         <?php echo \Livewire\Mechanisms\FrontendAssets\FrontendAssets::scripts(); ?>
 
+        
+        <?php if (isset($component)) { $__componentOriginal9099219a02264592b3835f6676c9d8af = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal9099219a02264592b3835f6676c9d8af = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.pwa-install-prompt','data' => []] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('pwa-install-prompt'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal9099219a02264592b3835f6676c9d8af)): ?>
+<?php $attributes = $__attributesOriginal9099219a02264592b3835f6676c9d8af; ?>
+<?php unset($__attributesOriginal9099219a02264592b3835f6676c9d8af); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal9099219a02264592b3835f6676c9d8af)): ?>
+<?php $component = $__componentOriginal9099219a02264592b3835f6676c9d8af; ?>
+<?php unset($__componentOriginal9099219a02264592b3835f6676c9d8af); ?>
+<?php endif; ?>
     </body>
 </html>
 <?php /**PATH /home/pdaniels/desarrollo/ges/resources/views/layouts/app.blade.php ENDPATH**/ ?>

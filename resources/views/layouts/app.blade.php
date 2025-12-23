@@ -16,7 +16,18 @@
 
         <!-- Styles -->
         @livewireStyles
+        <!-- PWA -->
+        <link rel="manifest" href="{{ asset('manifest.json') }}">
+        <meta name="theme-color" content="#4f46e5">
+        <link rel="apple-touch-icon" href="{{ asset('img/icons/icon.svg') }}">
 
+        <script>
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(() => console.log('Service Worker Registrado'))
+                    .catch((err) => console.log('Service Worker Falló', err));
+            }
+        </script>
         <script>
             if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 document.documentElement.classList.add('dark')
@@ -49,5 +60,7 @@
         @stack('modals')
 
         @livewireScripts
+        
+        <x-pwa-install-prompt />
     </body>
 </html>

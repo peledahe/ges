@@ -16,6 +16,17 @@
 
         <!-- Styles -->
         @livewireStyles
+        
+        <!-- PWA -->
+        <link rel="manifest" href="{{ asset('manifest.json') }}">
+        <meta name="theme-color" content="#4f46e5"> 
+        <link rel="apple-touch-icon" href="{{ asset('img/icons/icon.svg') }}">
+
+        <script>
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js');
+            }
+        </script>
     </head>
     <body>
         <div class="font-sans text-gray-900 dark:text-gray-100 antialiased">
