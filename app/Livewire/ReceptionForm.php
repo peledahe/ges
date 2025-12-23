@@ -15,6 +15,10 @@ class ReceptionForm extends Component
 {
     use WithFileUploads;
 
+    protected $rules = [
+        'photos.*' => 'image|max:12288', // 12MB
+    ];
+
     public $currentStep = 1;
     public $totalSteps = 4;
 
@@ -117,6 +121,10 @@ class ReceptionForm extends Component
 
     public function submit()
     {
+        $this->validate([
+            'photos.*' => 'image|max:12288', // Validate before processing
+        ]);
+
         DB::transaction(function () {
             // 1. Save/Update Vehicle
             $vehicle = Vehicle::updateOrCreate(
