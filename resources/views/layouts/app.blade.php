@@ -20,6 +20,7 @@
         <link rel="manifest" href="{{ asset('manifest.json') }}">
         <meta name="theme-color" content="#4f46e5">
         <link rel="apple-touch-icon" href="{{ asset('img/icons/icon.svg') }}">
+        <link rel="icon" href="{{ asset('img/icons/icon.svg') }}" type="image/svg+xml">
 
         <script>
             if ('serviceWorker' in navigator) {
