@@ -58,7 +58,7 @@
             <!-- Background Image with Overlay -->
             <div class="absolute inset-0 z-0">
                 <img src="{{ asset('img/workshop-hero.png') }}" class="w-full h-full object-cover" alt="Taller Background">
-                <div class="absolute inset-0 bg-gray-900/90 mix-blend-multiply"></div>
+                <div class="absolute inset-0 bg-gray-900/40"></div>
                 <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent"></div>
                 <!-- Edge Glow Effect -->
                 <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-gray-900/20 to-gray-900 opacity-80"></div>
