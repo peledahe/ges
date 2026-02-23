@@ -103,6 +103,25 @@
                         </a>
                     @endauth
                 </div>
+
+                <!-- Búsqueda Rápida de Vehículo -->
+                <div class="mt-12 max-w-lg mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-2xl relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <h3 class="text-lg text-white font-medium mb-4 flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        ¿Tienes tu vehículo en el taller?
+                    </h3>
+                    <form action="{{ route('rastreo') }}" method="GET" class="relative">
+                        <input type="text" name="plate" placeholder="Ingresa tu número de placa (Ej. ABC-123)" required
+                               class="w-full bg-gray-900/50 border border-white/10 text-white placeholder-gray-400 rounded-xl px-4 py-3 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase transition-all">
+                        <button type="submit" class="absolute right-2 top-1 bottom-1 px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium shadow-md transition-colors flex items-center justify-center">
+                            Buscar
+                        </button>
+                    </form>
+                    <p class="text-xs text-gray-400 mt-4">Consulta el estado actual y los detalles de las reparaciones de tu vehículo al instante.</p>
+                </div>
             </div>
         </div>
 

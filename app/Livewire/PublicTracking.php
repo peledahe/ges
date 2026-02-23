@@ -6,12 +6,21 @@ use Livewire\Component;
 use App\Models\Vehicle;
 use App\Models\WorkOrder;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 
 class PublicTracking extends Component
 {
+    #[Url]
     public $plate;
     public $workOrder;
     public $searched = false;
+
+    public function mount()
+    {
+        if ($this->plate) {
+            $this->search();
+        }
+    }
 
     // Use a simple layout without auth guards
     #[Layout('layouts.guest')] 
