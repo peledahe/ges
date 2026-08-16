@@ -41,3 +41,7 @@ auth.json
 *.iml
 .DS_Store
 Thumbs.db
+
+# IA Context
+/.agents
+/.clinerules
