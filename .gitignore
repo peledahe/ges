@@ -44,4 +44,5 @@ Thumbs.db
 
 # IA Context
 /.agents
+/.agent
 /.clinerules
