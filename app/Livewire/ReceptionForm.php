@@ -218,11 +218,16 @@ class ReceptionForm extends Component
     public function getVehicleImageProperty()
     {
         $images = [
-            'sedan' => 'sedan.png',
             'hashback' => 'hashback.png',
+            'sedan' => 'sedan.png',
             'suv' => 'camioneta.png',
             'pickup' => 'pickup.png',
             'pickup_double' => 'pickup-doble-cabina.png',
+            'van' => 'van.png',
+            'camion' => 'camion.png',
+            'cabezal' => 'cabezal.png',
+            'bus_escolar' => 'bus-escolar.png',
+            'bus' => 'bus.png',
         ];
 
         return $images[$this->type] ?? null;

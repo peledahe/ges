@@ -42,11 +42,16 @@
                                     <label class="block font-medium text-sm text-gray-700 dark:text-gray-300">Tipo de Vehículo</label>
                                     <select wire:model.live="type" class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full">
                                         <option value="">Seleccione</option>
-                                        <option value="sedan">Sedan</option>
                                         <option value="hashback">Hatchback</option>
+                                        <option value="sedan">Sedan</option>
                                         <option value="suv">Camioneta (SUV)</option>
                                         <option value="pickup">Pickup</option>
                                         <option value="pickup_double">Pickup Doble Cabina</option>
+                                        <option value="van">Van / Furgoneta</option>
+                                        <option value="camion">Camión de Carga</option>
+                                        <option value="cabezal">Cabezal de Tráiler</option>
+                                        <option value="bus_escolar">Bus Escolar</option>
+                                        <option value="bus">Autobús</option>
                                     </select>
                                     @error('type') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                 </div>
