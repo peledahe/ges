@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'tenant' => \App\Http\Middleware\CheckTenant::class,
+            'root' => \App\Http\Middleware\EnsureUserIsRoot::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

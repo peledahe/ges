@@ -18,6 +18,12 @@ class ResetUserPassword implements ResetsUserPasswords
      */
     public function reset(User $user, array $input): void
     {
+        if ($user->isDemo()) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'email' => ['Las cuentas de demostración no permiten restablecer su contraseña.'],
+            ]);
+        }
+
         Validator::make($input, [
             'password' => $this->passwordRules(),
         ])->validate();

@@ -31,6 +31,9 @@ class User extends Authenticatable
         'password',
         'tenant_id',
         'role',
+        'is_active',
+        'is_demo',
+        'demo_password',
         'area_id',
         'can_view_contact_info',
     ];
@@ -66,8 +69,25 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
+            'is_demo' => 'boolean',
             'can_view_contact_info' => 'boolean',
         ];
+    }
+
+    public function isDemo(): bool
+    {
+        return (bool) ($this->is_demo ?? false);
+    }
+
+    public function isDemoTenant(): bool
+    {
+        return $this->tenant?->isDemo() ?? false;
+    }
+
+    public function isActive(): bool
+    {
+        return (bool) ($this->is_active ?? true);
     }
 
     public function tenant()
@@ -85,8 +105,64 @@ class User extends Authenticatable
         return $this->role === $role;
     }
 
-    public function isAdmin()
+    public function isRoot(): bool
     {
-        return $this->role === 'admin';
+        return $this->role === 'root';
+    }
+
+    public function isAdmin(): bool
+    {
+        return in_array($this->role, ['admin', 'root']);
+    }
+
+    public function areas()
+    {
+        return $this->belongsToMany(Area::class);
+    }
+
+    /**
+     * Determina si el usuario tiene permiso para ver y gestionar una determinada área.
+     * Soporta talleres unipersonales (acceso total automático) o talleres con múltiples áreas y usuarios.
+     */
+    public function canAccessArea(int|string $areaId): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        // Si tiene áreas asignadas en la relación muchos-a-muchos
+        if ($this->areas()->exists()) {
+            return $this->areas()->where('areas.id', $areaId)->exists();
+        }
+
+        // Si tiene un área única asignada en area_id
+        if ($this->area_id) {
+            return (int) $this->area_id === (int) $areaId;
+        }
+
+        // Si es el único usuario del taller o no tiene áreas restrictivas configuradas
+        return true;
+    }
+
+    /**
+     * Retorna los IDs de las áreas a las que tiene acceso el usuario, o null si tiene acceso a todas.
+     */
+    public function accessibleAreaIds(): ?array
+    {
+        if ($this->isAdmin()) {
+            return null; // Acceso a todas
+        }
+
+        $assignedIds = $this->areas()->pluck('areas.id')->toArray();
+        if (!empty($assignedIds)) {
+            return $assignedIds;
+        }
+
+        if ($this->area_id) {
+            return [$this->area_id];
+        }
+
+        return null; // Sin restricción
     }
 }
+

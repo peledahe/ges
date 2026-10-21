@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('vehicle_id')->constrained()->onDelete('cascade');
             $table->foreignId('current_area_id')->nullable()->constrained('areas')->onDelete('set null');
             
-            $table->enum('status', ['recepcion', 'presupuesto', 'autorizado', 'en_proceso', 'finalizado', 'entregado'])->default('recepcion');
+            $table->enum('status', ['recibido', 'presupuesto', 'en_espera', 'trabajando', 'revision', 'terminado', 'recepcion', 'autorizado', 'en_proceso', 'finalizado', 'entregado'])->default('recibido');
             $table->enum('payment_type', ['aseguradora', 'particular']);
             $table->string('insurance_company')->nullable();
             

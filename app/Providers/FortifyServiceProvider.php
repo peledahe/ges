@@ -35,6 +35,22 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::redirectUserForTwoFactorAuthenticationUsing(RedirectIfTwoFactorAuthenticatable::class);
 
+        Fortify::authenticateUsing(function (Request $request) {
+            $user = \App\Models\User::where('email', $request->email)->first();
+
+            if ($user && \Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
+                if ($user->tenant_id && $user->tenant && !$user->tenant->is_active) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        Fortify::username() => ['Su taller se encuentra deshabilitado por el momento. Por favor, comuníquese con el administrador del sistema.'],
+                    ]);
+                }
+
+                return $user;
+            }
+
+            return null;
+        });
+
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
 

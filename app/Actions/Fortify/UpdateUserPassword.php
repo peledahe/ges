@@ -18,6 +18,12 @@ class UpdateUserPassword implements UpdatesUserPasswords
      */
     public function update(User $user, array $input): void
     {
+        if ($user->isDemo()) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'current_password' => ['Las cuentas de demostración tienen contraseñas protegidas y no pueden ser modificadas.'],
+            ])->errorBag('updatePassword');
+        }
+
         Validator::make($input, [
             'current_password' => ['required', 'string', 'current_password:web'],
             'password' => $this->passwordRules(),

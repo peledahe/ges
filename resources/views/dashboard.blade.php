@@ -10,6 +10,7 @@
             @include('dashboard.admin')
             @break
 
+        @case('manager')
         @case('encargado_area')
             @include('dashboard.area-manager')
             @break

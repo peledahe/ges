@@ -13,7 +13,9 @@ return new class extends Migration
     public function up(): void
     {
         // Step 1: Expand enum to include both old and new values
-        DB::statement("ALTER TABLE work_orders MODIFY COLUMN status ENUM('recepcion', 'recibido', 'presupuesto', 'autorizado', 'en_proceso', 'en_espera', 'trabajando', 'revision', 'finalizado', 'entregado', 'terminado') DEFAULT 'recibido'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE work_orders MODIFY COLUMN status ENUM('recepcion', 'recibido', 'presupuesto', 'autorizado', 'en_proceso', 'en_espera', 'trabajando', 'revision', 'finalizado', 'entregado', 'terminado') DEFAULT 'recibido'");
+        }
         
         // Step 2: Update existing data to new values
         DB::table('work_orders')->where('status', 'recepcion')->update(['status' => 'recibido']);
@@ -23,7 +25,9 @@ return new class extends Migration
         DB::table('work_orders')->where('status', 'entregado')->update(['status' => 'terminado']);
         
         // Step 3: Set final enum with only new values
-        DB::statement("ALTER TABLE work_orders MODIFY COLUMN status ENUM('recibido', 'presupuesto', 'en_espera', 'trabajando', 'revision', 'terminado') DEFAULT 'recibido'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE work_orders MODIFY COLUMN status ENUM('recibido', 'presupuesto', 'en_espera', 'trabajando', 'revision', 'terminado') DEFAULT 'recibido'");
+        }
     }
 
     /**

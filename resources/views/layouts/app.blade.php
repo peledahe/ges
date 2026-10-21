@@ -39,6 +39,7 @@
     </head>
     <body class="font-sans antialiased dark:bg-gray-900 dark:text-white">
         <x-banner />
+        <x-sticky-notification />
 
         <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
             @livewire('navigation-menu')

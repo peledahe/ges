@@ -12,9 +12,19 @@ class Vehicle extends Model
 
     protected $guarded = [];
     
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function workOrders()
+    {
+        return $this->hasMany(WorkOrder::class);
+    }
+
     public function routeNotificationForMail($notification)
     {
         // Return owner email
-        return $this->owner_email;
+        return $this->owner_email ?? $this->customer?->email;
     }
 }

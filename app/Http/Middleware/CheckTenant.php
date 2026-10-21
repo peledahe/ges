@@ -22,12 +22,34 @@ class CheckTenant
         
         if (Auth::check()) {
             $user = Auth::user();
+            if (isset($user->is_active) && !$user->is_active) {
+                Auth::guard('web')->logout();
+                Auth::forgetGuards();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return redirect()->route('login')->withErrors([
+                    'email' => 'Su cuenta de usuario se encuentra inactiva. Por favor, comuníquese con el administrador del taller para habilitar su acceso.',
+                ]);
+            }
+
             if ($user->tenant_id) {
+                if ($user->tenant && !$user->tenant->is_active) {
+                    Auth::guard('web')->logout();
+                    Auth::forgetGuards();
+                    $request->session()->invalidate();
+                    $request->session()->regenerateToken();
+
+                    return redirect()->route('login')->withErrors([
+                        'email' => 'Su taller se encuentra deshabilitado por el momento. Por favor, comuníquese con el administrador del sistema.',
+                    ]);
+                }
+
                 Session::put('tenant_id', $user->tenant_id);
-            } else {
-                // If user has no tenant, maybe they are super admin or it's an error.
-                // For now, let's assume valid users have tenants.
-                // Or maybe redirect to a "Select Tenant" page if one user has multiple tenants (not in v1 scope).
+            } elseif ($user->isRoot()) {
+                if (!$request->routeIs('admin.*') && !$request->routeIs('profile.*') && !$request->routeIs('logout')) {
+                    return redirect()->route('admin.tenants');
+                }
             }
         }
 

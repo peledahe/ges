@@ -5,32 +5,59 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
+                    <a href="{{ Auth::user()->isRoot() ? route('admin.tenants') : route('dashboard') }}">
                         <x-application-mark class="block h-9 w-auto" />
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
-                    
-                    <x-nav-link href="{{ route('reception.create') }}" :active="request()->routeIs('reception.create')">
-                        {{ __('Recepción') }}
-                    </x-nav-link>
+                    @if(Auth::user()->isRoot())
+                        <x-nav-link href="{{ route('admin.tenants') }}" :active="request()->routeIs('admin.tenants*')" class="text-indigo-600 dark:text-indigo-400 font-bold">
+                            <span class="inline-flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                                {{ __('Talleres (Tenants)') }}
+                            </span>
+                        </x-nav-link>
+                    @else
+                        @if(Auth::user()->role === 'client')
+                            <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
+                                {{ __('Mi Portal') }}
+                            </x-nav-link>
 
-                    <x-nav-link href="{{ route('workflow.index') }}" :active="request()->routeIs('workflow.index')">
-                        {{ __('Taller') }}
-                    </x-nav-link>
+                            <x-nav-link href="{{ Auth::user()->tenant ? route('rastreo.tenant', Auth::user()->tenant->slug) : route('rastreo') }}" :active="request()->routeIs('rastreo*')">
+                                {{ __('Rastrear por Placa') }}
+                            </x-nav-link>
+                        @else
+                            <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
+                                {{ __('Dashboard') }}
+                            </x-nav-link>
+                            
+                            <x-nav-link href="{{ route('reception.create') }}" :active="request()->routeIs('reception.create')">
+                                {{ __('Recepción') }}
+                            </x-nav-link>
 
-                    <x-nav-link href="{{ route('configuracion') }}" :active="request()->routeIs('configuracion')">
-                        {{ __('Configuración') }}
-                    </x-nav-link>
+                            <x-nav-link href="{{ route('workflow.index') }}" :active="request()->routeIs('workflow.index')">
+                                {{ __('Taller') }}
+                            </x-nav-link>
 
-                    <x-nav-link href="{{ route('users.index') }}" :active="request()->routeIs('users.index')">
-                        {{ __('Usuarios') }}
-                    </x-nav-link>
+                            <x-nav-link href="{{ route('reportes.index') }}" :active="request()->routeIs('reportes*')">
+                                {{ __('Reportes') }}
+                            </x-nav-link>
+
+                            @if(Auth::user()->isAdmin())
+                                <x-nav-link href="{{ route('configuracion') }}" :active="request()->routeIs('configuracion')">
+                                    {{ __('Configuración') }}
+                                </x-nav-link>
+
+                                <x-nav-link href="{{ route('users.index') }}" :active="request()->routeIs('users.index')">
+                                    {{ __('Usuarios') }}
+                                </x-nav-link>
+                            @endif
+                        @endif
+                    @endif
                 </div>
             </div>
 
@@ -41,7 +68,7 @@
                         <x-dropdown align="right" width="60">
                             <x-slot name="trigger">
                                 <span class="inline-flex rounded-md">
-                                    <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150">
+                                    <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50 focus:outline-none focus:bg-gray-50 dark:focus:bg-gray-700 active:bg-gray-50 dark:active:bg-gray-700 transition ease-in-out duration-150">
                                         {{ Auth::user()->currentTeam->name }}
 
                                         <svg class="ms-2 -me-0.5 size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -54,7 +81,7 @@
                             <x-slot name="content">
                                 <div class="w-60">
                                     <!-- Team Management -->
-                                    <div class="block px-4 py-2 text-xs text-gray-400">
+                                    <div class="block px-4 py-2 text-xs text-gray-400 dark:text-gray-400 font-semibold tracking-wider uppercase">
                                         {{ __('Manage Team') }}
                                     </div>
 
@@ -71,9 +98,9 @@
 
                                     <!-- Team Switcher -->
                                     @if (Auth::user()->allTeams()->count() > 1)
-                                        <div class="border-t border-gray-200"></div>
+                                        <div class="border-t border-gray-200 dark:border-gray-700"></div>
 
-                                        <div class="block px-4 py-2 text-xs text-gray-400">
+                                        <div class="block px-4 py-2 text-xs text-gray-400 dark:text-gray-400 font-semibold tracking-wider uppercase">
                                             {{ __('Switch Teams') }}
                                         </div>
 
@@ -87,8 +114,28 @@
                     </div>
                 @endif
 
+                <!-- Selector / Conmutador de Moneda (GTQ / USD) -->
+                @php
+                    $activeCurr = \App\Helpers\CurrencyHelper::getActiveCurrency();
+                    $activeRate = \App\Helpers\CurrencyHelper::getExchangeRate();
+                @endphp
+                <div class="ms-3 flex items-center">
+                    <div class="inline-flex items-center p-0.5 rounded-xl bg-gray-100 dark:bg-gray-700/70 border border-gray-200/80 dark:border-gray-600 text-xs font-bold" title="Tasa: US$ 1.00 = Q{{ number_format($activeRate, 2) }}">
+                        <a href="{{ route('currency.switch', 'GTQ') }}"
+                           class="px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 {{ $activeCurr === 'GTQ' ? 'bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 shadow-xs font-extrabold' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}">
+                            <span>🇬🇹</span>
+                            <span>Q</span>
+                        </a>
+                        <a href="{{ route('currency.switch', 'USD') }}"
+                           class="px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 {{ $activeCurr === 'USD' ? 'bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 shadow-xs font-extrabold' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}">
+                            <span>🇺🇸</span>
+                            <span>US$</span>
+                        </a>
+                    </div>
+                </div>
+
                 <!-- Dark Mode Toggle -->
-                <div class="flex items-center ms-3">
+                <div class="flex items-center ms-2">
                     <button
                         x-data="{
                             darkMode: localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches),
@@ -122,7 +169,7 @@
                                 </button>
                             @else
                                 <span class="inline-flex rounded-md">
-                                    <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150">
+                                    <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50 focus:outline-none focus:bg-gray-50 dark:focus:bg-gray-700 active:bg-gray-50 dark:active:bg-gray-700 transition ease-in-out duration-150">
                                         {{ Auth::user()->name }}
 
                                         <svg class="ms-2 -me-0.5 size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -135,7 +182,7 @@
 
                         <x-slot name="content">
                             <!-- Account Management -->
-                            <div class="block px-4 py-2 text-xs text-gray-400">
+                            <div class="block px-4 py-2 text-xs text-gray-400 dark:text-gray-400 font-semibold tracking-wider uppercase">
                                 {{ __('Manage Account') }}
                             </div>
 
@@ -149,7 +196,7 @@
                                 </x-dropdown-link>
                             @endif
 
-                            <div class="border-t border-gray-200"></div>
+                            <div class="border-t border-gray-200 dark:border-gray-700"></div>
 
                             <!-- Authentication -->
                             <form method="POST" action="{{ route('logout') }}" x-data>
@@ -180,29 +227,56 @@
     <!-- Responsive Navigation Menu -->
     <div x-show="open" class="sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
-            
-            <x-responsive-nav-link href="{{ route('reception.create') }}" :active="request()->routeIs('reception.create')">
-                {{ __('Recepción') }}
-            </x-responsive-nav-link>
+            @if(Auth::user()->isRoot())
+                <x-responsive-nav-link href="{{ route('admin.tenants') }}" :active="request()->routeIs('admin.tenants*')" class="font-bold text-indigo-600 dark:text-indigo-400">
+                    <span class="inline-flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        {{ __('Talleres (Tenants)') }}
+                    </span>
+                </x-responsive-nav-link>
+            @else
+                    @if(Auth::user()->role === 'client')
+                        <x-responsive-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
+                            {{ __('Mi Portal') }}
+                        </x-responsive-nav-link>
 
-            <x-responsive-nav-link href="{{ route('workflow.index') }}" :active="request()->routeIs('workflow.index')">
-                {{ __('Taller') }}
-            </x-responsive-nav-link>
+                        <x-responsive-nav-link href="{{ Auth::user()->tenant ? route('rastreo.tenant', Auth::user()->tenant->slug) : route('rastreo') }}" :active="request()->routeIs('rastreo*')">
+                            {{ __('Rastrear por Placa') }}
+                        </x-responsive-nav-link>
+                    @else
+                        <x-responsive-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
+                            {{ __('Dashboard') }}
+                        </x-responsive-nav-link>
+                        
+                        <x-responsive-nav-link href="{{ route('reception.create') }}" :active="request()->routeIs('reception.create')">
+                            {{ __('Recepción') }}
+                        </x-responsive-nav-link>
 
-            <x-responsive-nav-link href="{{ route('configuracion') }}" :active="request()->routeIs('configuracion')">
-                {{ __('Configuración') }}
-            </x-responsive-nav-link>
+                        <x-responsive-nav-link href="{{ route('workflow.index') }}" :active="request()->routeIs('workflow.index')">
+                            {{ __('Taller') }}
+                        </x-responsive-nav-link>
 
-            <x-responsive-nav-link href="{{ route('users.index') }}" :active="request()->routeIs('users.index')">
-                {{ __('Usuarios') }}
-            </x-responsive-nav-link>
+                        <x-responsive-nav-link href="{{ route('reportes.index') }}" :active="request()->routeIs('reportes*')">
+                            {{ __('Reportes') }}
+                        </x-responsive-nav-link>
+
+                        @if(Auth::user()->isAdmin())
+                            <x-responsive-nav-link href="{{ route('configuracion') }}" :active="request()->routeIs('configuracion')">
+                                {{ __('Configuración') }}
+                            </x-responsive-nav-link>
+
+                            <x-responsive-nav-link href="{{ route('users.index') }}" :active="request()->routeIs('users.index')">
+                                {{ __('Usuarios') }}
+                            </x-responsive-nav-link>
+                        @endif
+                    @endif
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200">
+        <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-700">
             <div class="flex items-center px-4">
                 @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
                     <div class="shrink-0 me-3">
@@ -212,10 +286,21 @@
 
                 <div>
                     <div class="font-medium text-base text-gray-800 dark:text-gray-200">{{ Auth::user()->name }}</div>
-                    <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+                    <div class="font-medium text-sm text-gray-500 dark:text-gray-400">{{ Auth::user()->email }}</div>
                 </div>
                 
-                <div class="ms-auto me-3">
+                <div class="ms-auto me-3 flex items-center gap-2">
+                    <div class="inline-flex items-center p-0.5 rounded-xl bg-gray-100 dark:bg-gray-700/70 border border-gray-200/80 dark:border-gray-600 text-xs font-bold">
+                        <a href="{{ route('currency.switch', 'GTQ') }}"
+                           class="px-2 py-1 rounded-lg transition-all {{ $activeCurr === 'GTQ' ? 'bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 font-extrabold shadow-xs' : 'text-gray-500 dark:text-gray-400' }}">
+                            Q
+                        </a>
+                        <a href="{{ route('currency.switch', 'USD') }}"
+                           class="px-2 py-1 rounded-lg transition-all {{ $activeCurr === 'USD' ? 'bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 font-extrabold shadow-xs' : 'text-gray-500 dark:text-gray-400' }}">
+                            US$
+                        </a>
+                    </div>
+
                      <button
                         x-data="{
                             darkMode: localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches),
@@ -264,9 +349,9 @@
 
                 <!-- Team Management -->
                 @if (Laravel\Jetstream\Jetstream::hasTeamFeatures())
-                    <div class="border-t border-gray-200"></div>
+                    <div class="border-t border-gray-200 dark:border-gray-700"></div>
 
-                    <div class="block px-4 py-2 text-xs text-gray-400">
+                    <div class="block px-4 py-2 text-xs text-gray-400 dark:text-gray-400 font-semibold tracking-wider uppercase">
                         {{ __('Manage Team') }}
                     </div>
 
@@ -283,9 +368,9 @@
 
                     <!-- Team Switcher -->
                     @if (Auth::user()->allTeams()->count() > 1)
-                        <div class="border-t border-gray-200"></div>
+                        <div class="border-t border-gray-200 dark:border-gray-700"></div>
 
-                        <div class="block px-4 py-2 text-xs text-gray-400">
+                        <div class="block px-4 py-2 text-xs text-gray-400 dark:text-gray-400 font-semibold tracking-wider uppercase">
                             {{ __('Switch Teams') }}
                         </div>
 
